@@ -71,7 +71,7 @@ const escalar = (metros) => {
 }
 
 const connect = (ctx) => {
-    ws = new WebSocket("ws://localhost:8080/ws");
+    ws = new WebSocket("ws://localhost:8888");
 
     ws.onopen = () => {
         console.log("Conectado al servidor WebSocket");
@@ -124,10 +124,6 @@ const connect = (ctx) => {
     ws.onerror = (error) => {
         console.error("Error en la conexion:", error);
     };
-}
-
-const actualizarInfoSimulacion = () => {
-
 }
 
 /**

@@ -191,17 +191,16 @@ func iniciarSimulacion() {
 }
 
 func main() {
-    http.HandleFunc("/ws", manejarWebsockets)
-    fmt.Println("WebSocket server started on :8080")
+    http.HandleFunc("/", manejarWebsockets)
+    fmt.Println("WebSocket server started on :8888")
 
 	go iniciarSimulacion()
 	go manejarBroadcast()
 
-    err := http.ListenAndServe(":8080", nil)
+    err := http.ListenAndServe(":8888", nil)
 
     if err != nil {
        fmt.Println("Error starting server:", err)
-    }
 }
 
 
