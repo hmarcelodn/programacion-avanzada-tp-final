@@ -7,8 +7,7 @@ class Cuerpo {
     }
 
     dibujar(ctx) {
-        const tiempo = Date.now() / 500; // más chico = parpadeo más rápido
-        const pulsoRadio = 12 + 4 * Math.sin(tiempo);  // tamaño pulsante
+        const tiempo = Date.now() / 500;
         const pulsoAlpha = 0.3 + 0.2 * Math.sin(tiempo); 
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radio, 0, 2 * Math.PI);
@@ -31,16 +30,12 @@ const canvasHeight = 800;
 const animar = (ctx) => {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);    
     const gradiente = ctx.createRadialGradient(
-        canvasWidth / 2, canvasHeight / 2, 100, // centro y radio inicial
-        canvasWidth / 2, canvasHeight / 2, canvasWidth / 1.5 // centro y radio final
+        canvasWidth / 2, canvasHeight / 2, 100,
+        canvasWidth / 2, canvasHeight / 2, canvasWidth / 1.5
     );
-    
-    // Colores: centro gris claro, bordes negro
-    gradiente.addColorStop(0, '#444');   // Gris más claro en el centro
-    gradiente.addColorStop(1, '#000');   // Negro en los bordes
-    
+    gradiente.addColorStop(0, '#444');
+    gradiente.addColorStop(1, '#000');
     ctx.fillStyle = gradiente;    
-    //ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     for (let i = 0; i < 10; i++) {

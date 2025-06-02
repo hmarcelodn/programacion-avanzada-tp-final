@@ -3,15 +3,14 @@ package main
 import (
 	"fmt"
 	"math"
-	"time"
-	"github.com/gorilla/websocket"
 	"net/http"
+	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 var clients = make(map[*websocket.Conn]bool)
 var broadcast = make(chan string)
-
-
 
 type Vector struct {
 	x, y float64
@@ -23,54 +22,54 @@ type Mensaje struct {
 }
 
 type Cuerpo struct {
-	nombre    string
-	posicion  Vector
-	velocidad Vector
-	aceleracion Vector
-	masa      float64
-	inbox     chan Mensaje
+	nombre          string
+	posicion        Vector
+	velocidad       Vector
+	aceleracion     Vector
+	masa            float64
+	inbox           chan Mensaje
 	fuerzaVectorial Vector
-	fuerzaNeta float64
+	fuerzaNeta      float64
 }
 
 const G = 6.674e-11
 const dt = 100000
 
 var upgrader = websocket.Upgrader{
-    CheckOrigin: func(r *http.Request) bool {
-       return true
-    },
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 func manejarWebsockets(w http.ResponseWriter, r *http.Request) {
-    conn, err := upgrader.Upgrade(w, r, nil)
+	conn, err := upgrader.Upgrade(w, r, nil)
 
-    if err != nil {
-       fmt.Println("Error upgrading:", err)
-       return
-    }
+	if err != nil {
+		fmt.Println("Error upgrading:", err)
+		return
+	}
 
 	clients[conn] = true
-    
+
 	defer conn.Close()
-    
-    for {
-       _, message, err := conn.ReadMessage()
 
-       if err != nil {
-          fmt.Println("Error reading message:", err)
-		  delete(clients, conn)
-          break
-       }
+	for {
+		_, message, err := conn.ReadMessage()
 
-	   broadcast <- string(message)
+		if err != nil {
+			fmt.Println("Error reading message:", err)
+			delete(clients, conn)
+			break
+		}
 
-       fmt.Printf("Received: %s\\n", message)
-       if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
-          fmt.Println("Error writing message:", err)
-          break
-       }
-    }
+		broadcast <- string(message)
+
+		fmt.Printf("Received: %s\\n", message)
+		if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
+			fmt.Println("Error writing message:", err)
+			break
+		}
+	}
 }
 
 func manejarBroadcast() {
@@ -96,7 +95,7 @@ func calcularFuerza(c1 *Cuerpo, c2 *Cuerpo) {
 	// Calculo la distancia
 	deltaX := c2.posicion.x - c1.posicion.x
 	deltaY := c2.posicion.y - c1.posicion.y
-	distanciaCuadrado := deltaX * deltaX + deltaY * deltaY
+	distanciaCuadrado := deltaX*deltaX + deltaY*deltaY
 	distancia := math.Sqrt(distanciaCuadrado) + 1e-5
 
 	// Aplico la ley de gravitacion universal
@@ -105,17 +104,17 @@ func calcularFuerza(c1 *Cuerpo, c2 *Cuerpo) {
 	// Sumo la fuerza neta a la fuerza neta del cuerpo 1, que es la suma de todas las fuerzas de todos los cuerpos
 	// Luego con esto aplico la segunda ley de newton para calcular la aceleracion y la velocidad
 	c1.fuerzaNeta += fuerzaMagnitud
-	c1.fuerzaVectorial = Vector{ 
-		fuerzaMagnitud * (deltaX / distancia) + c1.fuerzaVectorial.x, 
-		fuerzaMagnitud * (deltaY / distancia) + c1.fuerzaVectorial.y,
+	c1.fuerzaVectorial = Vector{
+		fuerzaMagnitud*(deltaX/distancia) + c1.fuerzaVectorial.x,
+		fuerzaMagnitud*(deltaY/distancia) + c1.fuerzaVectorial.y,
 	}
 }
 
 // Con las nuevas fuerzas de gravedad puedo calcular la nueva velocidad y la nueva posicion
-func actualizarPosicion(c *Cuerpo, dt float64) {	
+func actualizarPosicion(c *Cuerpo, dt float64) {
 	c.aceleracion = Vector{c.fuerzaVectorial.x / c.masa, c.fuerzaVectorial.y / c.masa}
-	c.velocidad = Vector{c.velocidad.x + c.aceleracion.x * dt, c.velocidad.y + c.aceleracion.y * dt}
-	c.posicion = Vector{c.posicion.x + c.velocidad.x * dt, c.posicion.y + c.velocidad.y * dt}
+	c.velocidad = Vector{c.velocidad.x + c.aceleracion.x*dt, c.velocidad.y + c.aceleracion.y*dt}
+	c.posicion = Vector{c.posicion.x + c.velocidad.x*dt, c.posicion.y + c.velocidad.y*dt}
 	c.fuerzaVectorial = Vector{0, 0}
 	c.fuerzaNeta = 0
 }
@@ -160,7 +159,6 @@ func iniciarSimulacion() {
 	pluton := crearNuevoCuerpo("pluton", 1.303e22, Vector{5.906e12, 0}, Vector{0, 4748})
 	cuerpos := []*Cuerpo{sol, tierra, marte, venus, mercurio, jupiter, saturno, urano, neptuno, pluton}
 
-
 	// Hacer broadcast de la informacion de cada planeta hacia los demas
 	// utilizando el inbox de cada actor (usando canales)
 	for {
@@ -171,10 +169,10 @@ func iniciarSimulacion() {
 				}
 			}
 		}
-	
+
 		// Esperamos que los cuerpos calculen sus fuerzas
-		time.Sleep(100 * time.Millisecond) 
-	
+		time.Sleep(100 * time.Millisecond)
+
 		// Actualizar posiciones
 		for _, cuerpo := range cuerpos {
 			actualizarPosicion(cuerpo, dt)
@@ -191,16 +189,15 @@ func iniciarSimulacion() {
 }
 
 func main() {
-    http.HandleFunc("/", manejarWebsockets)
-    fmt.Println("WebSocket server started on :8888")
+	http.HandleFunc("/", manejarWebsockets)
+	fmt.Println("WebSocket server started on :8888")
 
 	go iniciarSimulacion()
 	go manejarBroadcast()
 
-    err := http.ListenAndServe(":8888", nil)
+	err := http.ListenAndServe(":8888", nil)
 
-    if err != nil {
-       fmt.Println("Error starting server:", err)
+	if err != nil {
+		fmt.Println("Error starting server:", err)
+	}
 }
-
-
